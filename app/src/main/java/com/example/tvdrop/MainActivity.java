@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,7 +20,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import androidx.core.view.EdgeToEdge;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -43,7 +41,6 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -71,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
@@ -194,7 +190,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void restartServer() {
         stopHttpServer();
-        Toast.sleep(500);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         startHttpServer();
         Toast.makeText(this, "Serwer zrestartowany", Toast.LENGTH_SHORT).show();
     }
@@ -238,14 +238,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void openFile(File file) {
         try {
-            Uri uri = FileProvider.getUriForFile(this,getPackageName() + ".fileprovider", file);
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             if (file.getName().toLowerCase().endsWith(".apk")) {
                 intent.setDataAndType(uri, "application/vnd.android.package-archive");
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             } else {
-                String mime =getContentResolver().getType(uri);
+                String mime = getContentResolver().getType(uri);
                 if (mime == null) mime = "*/*";
                 intent.setDataAndType(uri, mime);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -429,7 +429,6 @@ public class MainActivity extends AppCompatActivity {
                     if (start >= body.length || (body[start] == '-' && body[start+1] == '-')) {
                         break;
                     }
-                    // skip \r\n
                     start += 2;
 
                     int headerEnd = indexOf(body, "\r\n\r\n".getBytes(), start);
@@ -440,13 +439,13 @@ public class MainActivity extends AppCompatActivity {
 
                     int end = indexOf(body, boundaryBytes, start);
                     if (end == -1) end = body.length;
-                    else end -= 2; // skip \r\n before boundary
+                    else end -= 2;
 
                     if (headers.contains("filename=\"")) {
                         int fnIdx = headers.indexOf("filename=\"");
                         int fnEnd = headers.indexOf("\"", fnIdx + 10);
                         String filename = headers.substring(fnIdx + 10, fnEnd);
-                        filename = new File(filename).getName(); // security
+                        filename = new File(filename).getName();
                         if (filename.isEmpty()) filename = "upload_" + System.currentTimeMillis();
 
                         File outFile = new File(downloadsDir, filename);
