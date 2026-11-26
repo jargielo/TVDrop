@@ -32,5 +32,12 @@ dependencies {
     implementation 'androidx.activity:activity:1.9.3'
     implementation('com.google.zxing:core:3.5.3') {
         exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.jetbrains.kotlinx'
+    }
+}
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22'
     }
 }
